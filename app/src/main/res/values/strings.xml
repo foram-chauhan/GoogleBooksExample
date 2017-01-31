@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GoogleBooksExample</string>
+    <string name="title">Title : </string>
+    <string name="publisher">Publisher :</string>
+    <string name="pagecount">Pages :</string>
+    <string name="authors">Author :</string>
+    <string name="no_internet_connection">No internet connection.</string>
+    <string name="no_books">No books found.</string>
+    <string name="search">Search</string>
+</resources>
