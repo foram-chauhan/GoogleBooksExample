@@ -32,12 +32,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     /*String query global variable*/
     private String query;
+
     /*ListView global variable*/
     private ListView bookListView;
+
     /*BookAdapter global variable*/
     private BookAdapter bookAdapter;
+
+    /*LoadingIndicator global variable*/
+    private View loadingIndicator;
     /**
-     * Constant value for the earthquake loader ID. We can choose any integer.
+     * Constant value for the book loader ID. We can choose any integer.
      * This really only comes into play if you're using multiple loaders.
      */
     private static final int BOOK_LOADER_ID = 1;
@@ -56,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Find a reference to the {@link ListView} in the layout
         bookListView = (ListView) findViewById(R.id.list);
 
+        // Hide loading indicator because the data has been loaded
+        loadingIndicator = findViewById(R.id.loading_indicator);
+
         // Create a new {@link ArrayAdapter} of books
         bookAdapter = new BookAdapter(
                 this, new ArrayList<Book>());
@@ -70,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<List<Book>> onCreateLoader(int i, Bundle bundle) {
+        loadingIndicator.setVisibility(View.VISIBLE);
         // Create a new loader for the given URL
         Log.v("Loader State","on Create Loader");
         return new BookLoader(this, GOOGLE_BOOKS_REQUEST_URL);
@@ -77,8 +86,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<List<Book>> loader, List<Book> books) {
-        // Hide loading indicator because the data has been loaded
-        View loadingIndicator = findViewById(R.id.loading_indicator);
+
         loadingIndicator.setVisibility(View.GONE);
 
         // Clear the adapter of previous book data
@@ -90,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             bookAdapter.notifyDataSetChanged();
         }
 
-        // Set empty state text to display "No earthquakes found."
+        // Set empty state text to display "No books found."
         mEmptyStateTextView.setText(R.string.no_books);
         Log.v("Loader State","on Load Finished");
     }
@@ -104,11 +112,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onClick(View view) {
-
         searchBook = (EditText)findViewById(R.id.searchBook);
         query = searchBook.getText().toString();
 
-        GOOGLE_BOOKS_REQUEST_URL  = "https://www.googleapis.com/books/v1/volumes?q="+query+"&maxResults=3";
+        GOOGLE_BOOKS_REQUEST_URL  = "https://www.googleapis.com/books/v1/volumes?q="+query+"&maxResults=15";
         Log.v("url",GOOGLE_BOOKS_REQUEST_URL);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
 
@@ -123,11 +130,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (networkInfo != null && networkInfo.isConnected()) {
             // Get a reference to the LoaderManager, in order to interact with loaders.
             LoaderManager loaderManager = getLoaderManager();
-
             // Initialize the loader. Pass in the int ID constant defined above and pass in null for
             // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
             // because this activity implements the LoaderCallbacks interface).
             loaderManager.initLoader(BOOK_LOADER_ID, null, this);
+            //Check if there's a loader running
+            if(getLoaderManager().getLoader(BOOK_LOADER_ID).isStarted()){
+                //restart if it's running for the following requests
+                getLoaderManager().restartLoader(BOOK_LOADER_ID,null,this);
+            }
         }else{
             //Otherwise,display error
             //First hide loading indicatorso error message will be visible
@@ -144,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         //bookListView.invalidateViews();
         bookListView.setAdapter(bookAdapter);
         //((BookAdapter)bookListView.getAdapter()).notifyDataSetChanged();
-        bookListView.setEmptyView(mEmptyStateTextView);
+        //bookListView.setEmptyView(mEmptyStateTextView);
 
 
     }
